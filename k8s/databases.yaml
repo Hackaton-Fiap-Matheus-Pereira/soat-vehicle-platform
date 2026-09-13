@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: {name: auth-db, namespace: soat}
+spec:
+  serviceName: auth-db
+  replicas: 1
+  selector: {matchLabels: {app: auth-db}}
+  template:
+    metadata: {labels: {app: auth-db}}
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.4
+          ports: [{containerPort: 3306}]
+          env:
+            - {name: MYSQL_DATABASE, value: auth_db}
+            - {name: MYSQL_USER, value: auth_user}
+            - name: MYSQL_PASSWORD
+              valueFrom: {secretKeyRef: {name: soat-secrets, key: AUTH_DB_PASSWORD}}
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom: {secretKeyRef: {name: soat-secrets, key: MYSQL_ROOT_PASSWORD}}
+          readinessProbe: {exec: {command: ["sh", "-c", "mysqladmin ping -h localhost -p$MYSQL_ROOT_PASSWORD"]}, initialDelaySeconds: 15, periodSeconds: 5}
+          volumeMounts: [{name: data, mountPath: /var/lib/mysql}]
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec: {accessModes: [ReadWriteOnce], resources: {requests: {storage: 2Gi}}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: auth-db, namespace: soat}
+spec: {selector: {app: auth-db}, ports: [{port: 3306}]}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: {name: vehicle-db, namespace: soat}
+spec:
+  serviceName: vehicle-db
+  replicas: 1
+  selector: {matchLabels: {app: vehicle-db}}
+  template:
+    metadata: {labels: {app: vehicle-db}}
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.4
+          ports: [{containerPort: 3306}]
+          env:
+            - {name: MYSQL_DATABASE, value: vehicle_db}
+            - {name: MYSQL_USER, value: vehicle_user}
+            - name: MYSQL_PASSWORD
+              valueFrom: {secretKeyRef: {name: soat-secrets, key: VEHICLE_DB_PASSWORD}}
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom: {secretKeyRef: {name: soat-secrets, key: MYSQL_ROOT_PASSWORD}}
+          readinessProbe: {exec: {command: ["sh", "-c", "mysqladmin ping -h localhost -p$MYSQL_ROOT_PASSWORD"]}, initialDelaySeconds: 15, periodSeconds: 5}
+          volumeMounts: [{name: data, mountPath: /var/lib/mysql}]
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec: {accessModes: [ReadWriteOnce], resources: {requests: {storage: 2Gi}}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: vehicle-db, namespace: soat}
+spec: {selector: {app: vehicle-db}, ports: [{port: 3306}]}
+

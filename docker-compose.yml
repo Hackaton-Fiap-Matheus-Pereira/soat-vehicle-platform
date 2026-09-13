@@ -1,0 +1,57 @@
+services:
+  auth-db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: auth_db
+      MYSQL_USER: auth_user
+      MYSQL_PASSWORD: auth_pass
+      MYSQL_ROOT_PASSWORD: root_pass
+    volumes: [auth-data:/var/lib/mysql]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot_pass"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  vehicle-db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: vehicle_db
+      MYSQL_USER: vehicle_user
+      MYSQL_PASSWORD: vehicle_pass
+      MYSQL_ROOT_PASSWORD: root_pass
+    volumes: [vehicle-data:/var/lib/mysql]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot_pass"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  auth-service:
+    build:
+      context: .
+      args: {SERVICE: auth_service}
+    environment:
+      DATABASE_URL: mysql+aiomysql://auth_user:auth_pass@auth-db:3306/auth_db
+      JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-me}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-admin@example.com}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-Admin123!}
+    depends_on:
+      auth-db: {condition: service_healthy}
+    ports: ["8001:8000"]
+
+  vehicle-service:
+    build:
+      context: .
+      args: {SERVICE: vehicle_service}
+    environment:
+      DATABASE_URL: mysql+aiomysql://vehicle_user:vehicle_pass@vehicle-db:3306/vehicle_db
+      JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-me}
+    depends_on:
+      vehicle-db: {condition: service_healthy}
+    ports: ["8002:8000"]
+
+volumes:
+  auth-data:
+  vehicle-data:
+

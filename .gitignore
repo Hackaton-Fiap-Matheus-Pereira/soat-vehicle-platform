@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+.env
+*.log
+.idea/
+.vscode/
+.terraform/
+*.tfstate*
+terraform/terraform.tfvars
+outputs/
+work/

@@ -1,0 +1,7 @@
+jwt_secret               = "replace-with-at-least-32-random-characters"
+mysql_root_password      = "replace-me"
+auth_db_password         = "replace-me"
+vehicle_db_password      = "replace-me"
+bootstrap_admin_email    = "admin@example.com"
+bootstrap_admin_password = "replace-me"
+
