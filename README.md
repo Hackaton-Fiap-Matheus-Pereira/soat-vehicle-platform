@@ -94,44 +94,21 @@ O Terraform cria namespace, Secret e ConfigMap. Os manifests criam os dois banco
 ## CI/CD e fluxo de Pull Request
 
 - Abra uma branch e um Pull Request; os jobs `test` e `e2e` executam lint, testes e o fluxo completo em containers.
-- Proteja a branch `main` no GitHub exigindo aprovacao e o check `test`.
-- Ao fazer merge, o job `build` publica as duas imagens no GHCR, com tags `latest` e SHA do commit.
-- O job `deploy` aplica secrets, bancos e APIs ao Kubernetes, espera os rollouts e falha se a implantacao nao ficar pronta.
+- Proteja a branch `main` no GitHub exigindo aprovacao e os checks `test` e `deploy-kind`.
+- O job `deploy-kind` cria um cluster Kubernetes temporario, implanta bancos e APIs e executa o fluxo completo.
+- Ao fazer merge, o job `publish` tambem publica as duas imagens no GHCR, com tags `latest` e SHA do commit.
 
-### Configurar o deploy automatico no GitHub
+### Deploy automatico sem conta de nuvem
 
-Crie um cluster Kubernetes acessivel pela internet (ou um runner GitHub auto-hospedado com acesso ao cluster). Em **Settings > Secrets and variables > Actions**, cadastre estes repository secrets:
+O GitHub Actions cria um cluster Kind isolado dentro do runner. Nenhum kubeconfig ou secret precisa ser cadastrado. A pipeline constroi as imagens localmente, carrega-as no cluster, cria credenciais exclusivas de teste, aplica os manifests, aguarda os pods e executa `scripts/demo.ps1` contra as APIs implantadas.
 
-| Secret | Valor |
-|---|---|
-| `KUBE_CONFIG_BASE64` | conteudo do kubeconfig codificado em Base64 |
-| `JWT_SECRET` | chave aleatoria com pelo menos 32 caracteres |
-| `MYSQL_ROOT_PASSWORD` | senha root do MySQL |
-| `AUTH_DB_PASSWORD` | senha do banco de identidade |
-| `VEHICLE_DB_PASSWORD` | senha do banco de veiculos |
-| `AUTH_DATABASE_URL` | `mysql+aiomysql://auth_user:SENHA@auth-db:3306/auth_db` |
-| `VEHICLE_DATABASE_URL` | `mysql+aiomysql://vehicle_user:SENHA@vehicle-db:3306/vehicle_db` |
-| `BOOTSTRAP_ADMIN_EMAIL` | e-mail do administrador inicial |
-| `BOOTSTRAP_ADMIN_PASSWORD` | senha forte do administrador inicial |
-| `GHCR_USERNAME` | seu usuario do GitHub |
-| `GHCR_TOKEN` | Personal Access Token com permissao `read:packages` |
-
-No PowerShell, gere o valor de `KUBE_CONFIG_BASE64` assim:
-
-```powershell
-$bytes = [System.IO.File]::ReadAllBytes("$HOME\.kube\config")
-[Convert]::ToBase64String($bytes)
-```
-
-Use senhas alfanumericas nos bancos para evitar a necessidade de escapar caracteres reservados nas URLs. Os valores de `AUTH_DB_PASSWORD` e `VEHICLE_DB_PASSWORD` devem ser os mesmos usados nas respectivas URLs.
-
-Crie tambem o environment `production` em **Settings > Environments**. Opcionalmente, exija aprovacao manual nesse environment antes do deploy.
-
-Depois disso, cada merge aprovado em `main` segue automaticamente:
+Em Pull Requests, o fluxo automatico e:
 
 ```text
-lint e testes -> teste ponta a ponta -> build -> GHCR -> Kubernetes -> verificacao do rollout
+lint e testes -> cluster Kind -> build -> deploy Kubernetes -> teste ponta a ponta
 ```
+
+Depois do merge em `main`, o job `publish` publica as imagens no GitHub Container Registry. O cluster Kind e temporario e descartado ao final, o que e apropriado para validar e comprovar a automacao sem custos de nuvem.
 
 ## Modelo de dados
 

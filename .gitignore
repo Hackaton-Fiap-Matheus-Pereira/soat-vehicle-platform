@@ -1,4 +1,7 @@
 __pycache__/
+build/
+dist/
+*.egg-info/
 *.py[cod]
 .pytest_cache/
 .coverage
@@ -13,6 +16,3 @@ htmlcov/
 terraform/terraform.tfvars
 outputs/
 work/
-build/
-dist/
-*.egg-info/
