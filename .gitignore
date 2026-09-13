@@ -13,3 +13,6 @@ htmlcov/
 terraform/terraform.tfvars
 outputs/
 work/
+build/
+dist/
+*.egg-info/
