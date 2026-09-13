@@ -152,5 +152,6 @@ scripts/demo.ps1    roteiro executavel ponta a ponta
 8. Encerre mostrando `terraform plan` e as migrations Alembic.
 
 ## Entrega
-
-O enunciado solicita um PDF final com dois links: o repositorio GitHub e o video publicado. Use o modelo em `docs/ENTREGA.md` depois que as URLs existirem.
+- Nome: Matheus Pereira
+- Curso: Software Architecture - SOAT
+- Fase: 3
