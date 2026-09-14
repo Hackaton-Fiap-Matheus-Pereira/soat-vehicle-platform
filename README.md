@@ -539,8 +539,8 @@ soat-vehicle-platform/
 - [x] fluxo validado por Pull Request;
 - [x] documentação Swagger/OpenAPI;
 - [x] README com instruções de execução e teste;
-- [ ] vídeo demonstrativo publicado;
-- [ ] PDF final com links do repositório e do vídeo.
+- [x] vídeo demonstrativo publicado;
+- [x] PDF final com links do repositório e do vídeo.
 
 ## 📌 Considerações finais
 
